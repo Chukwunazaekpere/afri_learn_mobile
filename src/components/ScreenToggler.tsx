@@ -12,6 +12,8 @@ const ScreenToggler = () => {
     const handleTogglerActions = (props: ActionInterface) => {
         if(props.actionName === "hide-splash-screen"){
             togglerState.showSplashScreen = false;
+        }else{
+            togglerState.showSplashScreen = true;
         }
         setTogglerState({...togglerState})
     }
@@ -21,7 +23,7 @@ const ScreenToggler = () => {
                 togglerState.showSplashScreen ?
                 <SplashScreen actionToggler={() => handleTogglerActions({actionName: "hide-splash-screen"})} />
                 :
-                <SubjectsScreen />
+                <SubjectsScreen handleTogglerActions={() => handleTogglerActions({actionName: "show-splash-screen"})} />
             }
         </React.Fragment>
     )

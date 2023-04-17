@@ -1,21 +1,25 @@
 import React, { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { FlatList, ScrollView, SectionList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import axiosHelper from "../helper/axiosHelper";
 import colors from "../assets/colors";
 import { dimension } from "../components/Header";
 import { camelCaseSeparator } from "../helper/strings";
+import SubjectsScreen from "./SubjectsScreen";
 
 
 interface DetailsScreenInterface {
     routename: string
     data: any
     actionHandler: Function
+    showTopicDetails: boolean
+    showTopics: boolean
 }
 const DetailsScreen = (props: DetailsScreenInterface) => {
     const [detailsState, setDetailsState] = useState({
         detailKeys: []as string[],
         data: {}as any,
-        topicsData: []as any[]
+        topicsData: []as any[],
+        sectionList: []as string[]
     })
     useEffect(() => {
         (async() => {
@@ -27,7 +31,7 @@ const DetailsScreen = (props: DetailsScreenInterface) => {
             if(detailsResponse && detailsResponse.status === 200){
                 // console.log("\n\t detailsResponse: ", detailsResponse.data);
                 const responseData = detailsResponse.data.data;
-                console.log("\n\t detailsResponse-responseData: ", responseData[0]);
+                // console.log("\n\t detailsResponse-responseData: ", responseData[0]);
                 if(responseData.length > 0){
                     const data = {
                         ...props.data,
@@ -37,52 +41,86 @@ const DetailsScreen = (props: DetailsScreenInterface) => {
                     const detailKeysData = Object.keys(data);
                     detailsState.detailKeys = detailKeysData;
                     detailsState.topicsData = responseData;
-                    console.log("\n\t data: ", data);
-                }
-                setDetailsState({...detailsState})
-                console.log("\n\t detailKeysData: ", detailsState.detailKeys);
+                    detailsState.sectionList = responseData.map((data:any) => data.title);
+                    console.log("\n\t data-topicsData: ", detailsState.topicsData[0]);
+                };
+                setDetailsState({...detailsState});
+                // console.log("\n\t detailKeysData-sectionList: ", detailsState.sectionList);
             }
         })();
     }, []);
     const exclusions = ["_id", "__v", "createdby", "updatedby", "dateupdated", "datecreated"]
+    const renderItem = (data: any) => {
+        console.log("\n\t Topics-data-topicsData: ", data)
+        detailsState.data = data;
+        const detailKeysData = Object.keys(data.item);
+        detailsState.detailKeys = detailKeysData;
+        // detailsState.topicsData = responseData;
+        return(
+            <React.Fragment>
+                <Text style={styles.sectionHeaderText}>{data.item.title}</Text>
+                <ContentExtract  />
+            </React.Fragment>
+        )
+    }
+    const ContentExtract = () => (
+        <View style={styles.contentContainer}>
+            {
+                detailsState.detailKeys.length > 0 ?
+                detailsState.detailKeys.map(act => (
+                    <React.Fragment key={act}>
+                        {
+                            !exclusions.includes(act.toLowerCase()) && 
+                            <View style={styles.content} key={act}>
+                                <Text style={styles.headerText}>{camelCaseSeparator(act)}:</Text>
+                                <Text style={styles.headerText}>{detailsState.data[act]}</Text>
+                            </View>
+                        }
+                    </React.Fragment>
+                ))
+                :
+                <Text style={styles.headerText}>No Content</Text>
+            }
+        </View>
+    )
     return(
         <View>
-            <ScrollView>
-                <TouchableOpacity style={styles.opacityContainer} >
-                    <View style={styles.contentContainer}>
-                        {
-                            detailsState.detailKeys.length > 0 ?
-                            detailsState.detailKeys.map(act => (
-                                <React.Fragment key={act}>
-                                    {
-                                        !exclusions.includes(act.toLowerCase()) && 
-                                        <View style={styles.content} key={act}>
-                                            <Text style={styles.headerText}>{camelCaseSeparator(act)}:</Text>
-                                            <Text style={styles.headerText}>{detailsState.data[act]}</Text>
-                                        </View>
-                                    }
-                                </React.Fragment>
-                            ))
-                            :
-                            <Text style={styles.headerText}>No Content</Text>
-                        }
-
-                    </View>
-                    <View style={styles.actionContainer}>
-                        {
-                            ["Back", "See Topics"].slice(0, detailsState.detailKeys.length > 0 ? undefined : 1).map(act => (
-                                <TouchableOpacity style={styles.actionContainer} key={act}>
-                                    <Text 
-                                        onPress={() => props.actionHandler({action: act.toLowerCase(), subjectName: act})}
-                                        style={styles.headerTextForActionButtons}>
-                                        {act}
-                                    </Text>
-                                </TouchableOpacity>
-                            ))
-                        }
-                    </View>
-                </TouchableOpacity>
-            </ScrollView>
+            {
+                !props.showTopics ?
+                <ScrollView>
+                    <TouchableOpacity style={styles.opacityContainer} >
+                        <ContentExtract />
+                        <View style={styles.actionContainer}>
+                            {
+                                ["Back", "See Topics"].slice(0, detailsState.detailKeys.length > 0 ? undefined : 1).map(act => (
+                                    <TouchableOpacity style={styles.actionContainer} key={act}>
+                                        <Text 
+                                            onPress={() => props.actionHandler({action: act.toLowerCase(), subjectName: act})}
+                                            style={styles.headerTextForActionButtons}>
+                                            {act}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))
+                            }
+                        </View>
+                    </TouchableOpacity>
+                </ScrollView>
+                :
+                props.showTopics ?
+                <FlatList 
+                    data={detailsState.topicsData}
+                    renderItem={data => renderItem(data)}
+                    keyExtractor={data => data.title}
+                    // head
+                    // sections={detailsState.topicsData}
+                    // renderSectionHeader={({ section }) => (
+                    //     <Text style={styles.headerText}>{section.title}</Text>
+                    // )}
+                />
+                :
+                props.showTopicDetails &&
+                ""
+            }
         </View>
     )
 };
@@ -116,6 +154,17 @@ const styles = StyleSheet.create({
         color: colors.white,
         // borderRadius: 20,
         paddingHorizontal: 5
+    },
+    sectionHeaderText: {
+        fontSize: 18,
+        fontWeight: "600",
+        color: colors.black,
+        backgroundColor: colors.green,
+        // borderRadius: 20,
+        paddingHorizontal: 5,
+        borderRadius: 10,
+        paddingVertical: 10,
+        marginTop: 10
     },
     headerTextForActionButtons: {
         fontSize: 23,

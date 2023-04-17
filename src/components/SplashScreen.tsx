@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Image, ImageBackground, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Image, StatusBar, StyleSheet, Text, TouchableOpacity } from "react-native";
 import Container from "./Container";
 import colors from "../assets/colors";
 const SplashGif = require("../assets/afri_book.gif");

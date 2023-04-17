@@ -5,15 +5,18 @@ import Header, { dimension } from "../components/Header";
 import Container from "../components/Container";
 import colors from "../assets/colors";
 import DetailsScreen from "./DetailsScreen";
-const SplashGif = require("../assets/afri_book.gif");
+
 
 
 
 interface SubjectActionsInterface {
-    action: "subject-details",
+    action: "subject-details" | "see topics" | "back",
     subjectName: string
 }
-const SubjectsScreen = () => {
+interface SubjectInterface {
+    handleTogglerActions: Function
+}
+const SubjectsScreen = (props: SubjectInterface) => {
     const [subjectState, setSubjectState] = useState({
         subjects: []as any[],
         subjectData: []as any[],
@@ -49,20 +52,23 @@ const SubjectsScreen = () => {
             subjectState.subjectId = subjectSelected._id;
             subjectState.showSubjects = false;
             subjectState.subjectSelected = subjectSelected;
-            console.log("\n\t subjectSelected: ", subjectSelected)
+            // console.log("\n\t subjectSelected: ", subjectSelected)
         }else if(props.action === "back"){
             subjectState.showSubjectDetails = false;
             subjectState.showSubjects = true;
         }else if(props.action === "see topics"){
             // subjectState.showSubjectDetails = false;
-            // subjectState.showSubjects = false;
+            subjectState.showSubjects = false;
             subjectState.showTopics = true;
         }
         return setSubjectState({...subjectState});
     }
     return(
         <Container style={styles.container}>
-            <Header title={`Subjects: (${subjectState.subjects.length})`} />
+            <Header 
+                headerIconHandler={subjectState.showSubjects ? () => props.handleTogglerActions() : () => handleSubjectActions({action: subjectState.showSubjectDetails ? "back" : "see topics", subjectName: "back"})}
+                title={`Subjects: (${subjectState.subjects.length})`} 
+            />
             <View style={styles.subjectListContainer}>
                 {
                     subjectState.showSubjects ?
@@ -79,14 +85,17 @@ const SubjectsScreen = () => {
                         }
                     </ScrollView>
                     :
-                    subjectState.showSubjectDetails ?
+                    subjectState.showSubjectDetails &&
                     <DetailsScreen 
                         routename={`/subjects/topic-details/${subjectState.subjectId}`} 
                         data={subjectState.subjectSelected}
                         actionHandler={handleSubjectActions}
+                        showTopics={subjectState.showTopics}
+                        showTopicDetails={subjectState.showTopicDetails}
                     />
-                    :
-                    ""
+                    // :
+                    // subjectState.showTopics &&
+                    // <TopicsScreen />
 
 
                 }
