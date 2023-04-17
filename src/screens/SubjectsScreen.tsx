@@ -26,6 +26,7 @@ const SubjectsScreen = (props: SubjectInterface) => {
         subjectSelected: {}as any,
         showSubjectDetails: false,
         showTopicDetails: false,
+        headerTitle: ""
     })
     useEffect(() => {
         (async() => {
@@ -37,6 +38,7 @@ const SubjectsScreen = (props: SubjectInterface) => {
                 subjectState.subjects = [];
                 const subjectResponseData = subjectResponse.data;
                 subjectState.subjectData = subjectResponseData.data;
+                subjectState.headerTitle = `Subjects: (${subjectResponseData.data.length})`;
                 // console.log("\n\t subjectResponseData: ", subjectResponseData)
                 subjectResponseData.data.forEach((data:any) => subjectState.subjects.push(data.description));
                 // console.log("\n\t subjects: ", subjectState.subjects)
@@ -52,9 +54,11 @@ const SubjectsScreen = (props: SubjectInterface) => {
             subjectState.subjectId = subjectSelected._id;
             subjectState.showSubjects = false;
             subjectState.subjectSelected = subjectSelected;
-            // console.log("\n\t subjectSelected: ", subjectSelected)
+            subjectState.headerTitle = `${subjectSelected.description} - ${subjectSelected.subjectCode}`;
+            console.log("\n\t subjectSelected: ", subjectSelected)
         }else if(props.action === "back"){
             subjectState.showSubjectDetails = false;
+            subjectState.headerTitle = `Subjects: (${subjectState.subjects.length})`;
             subjectState.showSubjects = true;
         }else if(props.action === "see topics"){
             // subjectState.showSubjectDetails = false;
@@ -67,7 +71,7 @@ const SubjectsScreen = (props: SubjectInterface) => {
         <Container style={styles.container}>
             <Header 
                 headerIconHandler={subjectState.showSubjects ? () => props.handleTogglerActions() : () => handleSubjectActions({action: subjectState.showSubjectDetails ? "back" : "see topics", subjectName: "back"})}
-                title={`Subjects: (${subjectState.subjects.length})`} 
+                title={subjectState.headerTitle} 
             />
             <View style={styles.subjectListContainer}>
                 {

@@ -19,7 +19,8 @@ const DetailsScreen = (props: DetailsScreenInterface) => {
         detailKeys: []as string[],
         data: {}as any,
         topicsData: []as any[],
-        sectionList: []as string[]
+        sectionList: []as string[],
+        topicDetails: []as any[]
     })
     useEffect(() => {
         (async() => {
@@ -49,31 +50,31 @@ const DetailsScreen = (props: DetailsScreenInterface) => {
             }
         })();
     }, []);
-    const exclusions = ["_id", "__v", "createdby", "updatedby", "dateupdated", "datecreated"]
+    const exclusions = ["_id", "__v", "subject",  "title", "createdby", "updatedby", "dateupdated", "datecreated"]
     const renderItem = (data: any) => {
-        console.log("\n\t Topics-data-topicsData: ", data)
+        // console.log("\n\t Topics-data-topicsData: ", data)
         detailsState.data = data;
         const detailKeysData = Object.keys(data.item);
         detailsState.detailKeys = detailKeysData;
-        // detailsState.topicsData = responseData;
+        detailsState.topicDetails = [data.item];
         return(
             <React.Fragment>
                 <Text style={styles.sectionHeaderText}>{data.item.title}</Text>
                 <ContentExtract  />
             </React.Fragment>
         )
-    }
+    };
     const ContentExtract = () => (
         <View style={styles.contentContainer}>
             {
                 detailsState.detailKeys.length > 0 ?
-                detailsState.detailKeys.map(act => (
+                detailsState.detailKeys.map((act, index) => (
                     <React.Fragment key={act}>
                         {
                             !exclusions.includes(act.toLowerCase()) && 
                             <View style={styles.content} key={act}>
                                 <Text style={styles.headerText}>{camelCaseSeparator(act)}:</Text>
-                                <Text style={styles.headerText}>{detailsState.data[act]}</Text>
+                                <Text style={styles.headerText}>{!props.showTopics ? detailsState.data[act] : detailsState.topicDetails[0][act]}</Text>
                             </View>
                         }
                     </React.Fragment>
@@ -82,7 +83,8 @@ const DetailsScreen = (props: DetailsScreenInterface) => {
                 <Text style={styles.headerText}>No Content</Text>
             }
         </View>
-    )
+    );
+    console.log("\n\t Topics-data-topicsData: ", detailsState.topicDetails)
     return(
         <View>
             {
